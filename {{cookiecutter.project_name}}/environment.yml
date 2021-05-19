@@ -1,0 +1,19 @@
+name: {{cookiecutter.project_name}}
+channels:
+    - conda-forge
+    - bioconda
+    - defaults
+dependencies:
+    - black
+    - codecov
+    - dvc
+    - dvc-gdrive
+    - flake8
+    - ipython
+    - jupyterlab
+    - libblas=*=*_mkl
+    - nbstripout
+    - nextflow
+    - pip
+    - pytest
+    - python=3
