@@ -1,5 +1,5 @@
 #!/bin/sh
 eval "$(conda shell.bash hook)"; conda activate env/
-black test {{cookiecutter.project_name}}
-flake8 {{cookiecutter.project_name}}
+black {{cookiecutter.project_name}} src test
+flake8 {{cookiecutter.project_name}} src test
 exec dvc git-hook pre-commit $@
