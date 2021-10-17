@@ -1,5 +1,5 @@
 #!/bin/bash
 
 git init .
-git add -f .
+git add .
 git commit -m "Initial setup"

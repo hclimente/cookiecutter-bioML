@@ -1,19 +1,28 @@
 name: {{cookiecutter.project_name}}
 channels:
-    - conda-forge
-    - bioconda
-    - defaults
+  - conda-forge
+  - bioconda
+  - defaults
 dependencies:
-    - black
-    - codecov
-    - dvc
-    - dvc-gdrive
-    - flake8
-    - ipython
-    - jupyterlab
-    - libblas=*=*_mkl
-    - nbstripout
-    - nextflow
-    - pip
-    - pytest
-    - python=3
+  # project-specific packages
+  # required
+  - codecov
+  - dvc
+  - dvc-gdrive
+  - ipython
+  - jupyterlab
+  - libblas=*=*_mkl
+  - nextflow
+  - pip
+  - pytest
+  - python=3
+  - r-irkernel
+  # usually good to have
+  - numpy
+  - numexpr
+  - r
+  - rpy2
+  - r-tidyverse
+  - pandas
+  - scikit-learn
+  - seaborn

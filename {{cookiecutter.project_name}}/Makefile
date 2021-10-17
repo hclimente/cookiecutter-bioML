@@ -1,16 +1,15 @@
-.PHONY: clean setup jupyter
-
-#################################################################################
-# GLOBALS                                                                       #
-#################################################################################
+###############################
+# GLOBALS
 CONDA_ENV = ./env/
 CONDA_ACTIVATE = eval "$$(conda shell.bash hook)"; conda activate $(CONDA_ENV); export PYTHONPATH=`pwd`:$${PYTHONPATH}
 
-#################################################################################
-# COMMANDS                                                                      #
-#################################################################################
+.PHONY: $(CONDA_ENV) clean setup jupyter
+
+###############################
+# COMMANDS
 setup: $(CONDA_ENV)
-	git config core.hooksPath .githooks
+	$(CONDA_ACTIVATE) && R -e "IRkernel::installspec()"
+	pre-commit install
 
 $(CONDA_ENV): environment.yml
 	mamba env create --force --prefix $(CONDA_ENV) --file environment.yml
