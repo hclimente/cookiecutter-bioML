@@ -1,66 +1,40 @@
 #!/usr/bin/env python
 """
 Input variables:
-    - TRAIN: path of a numpy array with x.
-    - LAMBDA: regularisation scalar for the L1 penalty
+  - TRAIN_NPZ: path to a .npz file containing the train set. It must contain three
+    elements: an X matrix, a y vector, and a featnames vector (optional)
+  - TEST_NPZ: path to a .npz file containing the test set. It must contain three
+    elements: an X matrix, a y vector, and a featnames vector (optional)
+  - PARAMS_JSON: path to a json file with the hyperparameters
+    - n_nonzero_coefs
 Output files:
-    - selected.npy
+  - y_proba.npz: predictions on the test set.
+  - scores.npz: contains the featnames, wether each feature was selected, their scores
+    and the hyperparameters selected by cross-validation
+  - scores.tsv: like scores.npz, but in tsv format
 """
-import numpy as np
-from sklearn.utils.validation import check_array
-from spams import fistaFlat
+from sklearn.linear_model import LogisticRegressionCV
 
+import utils as u
 
-def logreg(X, y, lambda_1):
+# Train model
+############################
+X, y, featnames = u.read_data("${TRAIN_NPZ}")
+param_grid = u.read_parameters("${PARAMS_FILE}")
 
-    weights_0 = np.zeros((X.shape[1], 1), dtype="float32", order="F")
+clf = LogisticRegressionCV(**param_grid)
+clf.fit(X, y)
 
-    X = check_array(X, order="F", dtype="float32")
-    y = np.expand_dims(y, 1)
-    y = check_array(y, order="F", dtype="float32")
+# Predict test
+############################
+X_test, _, _ = u.read_data("${TEST_NPZ}")
 
-    weights, optim_info = fistaFlat(
-        y,
-        X,
-        weights_0,
-        True,
-        verbose=True,
-        max_it=500,
-        L0=0.1,
-        tol=1e-3,
-        loss="weighted-logistic",
-        regul="l1",
-        lambda1=lambda_1,
-    )
+y_proba = clf.predict_proba(X_test)
+u.save_proba_npz(y_proba)
 
-    print(
-        "mean loss: %f, mean relative duality_gap: %f, number of iterations: %f"
-        % (
-            np.mean(optim_info[0, :], 0),
-            np.mean(optim_info[2, :], 0),
-            np.mean(optim_info[3, :], 0),
-        )
-    )
+# Active features
+############################
+selected = clf.coef_ != 0
 
-    weights = np.squeeze(weights, 1)
-
-    return weights
-
-
-np.random.seed(0)
-
-train_data = np.load("${TRAIN}", allow_pickle=True)
-
-X_train = train_data["X"]
-y_train = train_data["Y"]
-
-lambda_1 = float("${LAMBDA}")
-weights = logreg(X_train, y_train, lambda_1)
-
-# test
-test_data = np.load("${TEST}")
-
-X_test = test_data["X"]
-
-y_proba = 1 / (1 + np.exp(-np.dot(X_test, weights)))
-np.save("y_proba.npy", y_proba)
+u.save_scores_npz(featnames, selected, clf.coef_, param_grid)
+u.save_scores_tsv(featnames, selected, clf.coef_, param_grid)

@@ -12,22 +12,13 @@ import csv
 import numpy as np
 from sklearn.metrics import roc_auc_score
 
+import utils as u
 
-def load_data(path):
-    data = np.load(path, allow_pickle=True)
-
-    X = data["X"].transpose()
-    Y = data["Y"]
-    genes = data["genes"]
-
-    return X, Y, genes
-
-
-X_test, y_test, genes_test = load_data("${TEST}")
-y_proba = np.load("${Y_PROBA}")
+_, y, _ = u.read_data("${TEST_NPZ}")
+y_proba = np.load("${Y_PROBA}")["proba"]
 
 try:
-    auc = roc_auc_score(y_test, y_proba)
+    auc = roc_auc_score(y, y_proba)
 except ValueError:
     auc = "NA"
 

@@ -2,7 +2,7 @@
 """
 Input variables:
   - TRAIN_NPZ: path to a .npz file containing three elements: an X matrix, a y vector,
-    and a featnames vector
+    and a featnames vector (optional)
 Output files:
   - selected.npz: contains the featnames of all the features
 """

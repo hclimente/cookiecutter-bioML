@@ -1,52 +1,42 @@
 #!/usr/bin/env python
 """
 Input variables:
-    - SELECTED_FEATURES: path to the selected features.
-    - TRAIN: path to numpy array with train X matrix.
-    - TEST: path to numpy array with train Y vector.
+  - TRAIN_NPZ: path to a .npz file containing the train set. It must contain three
+    elements: an X matrix, a y vector, and a featnames vector (optional)
+  - TEST_NPZ: path to a .npz file containing the test set. It must contain three
+    elements: an X matrix, a y vector, and a featnames vector (optional)
+  - PARAMS_JSON: path to a json file with the hyperparameters
+    - None
 Output files:
-    - y_pred.npy
+  - y_proba.npz: predictions on the test set.
+  - scores.npz: contains the featnames, wether each feature was selected, their scores
+    and the hyperparameters selected by cross-validation
+  - scores.tsv: like scores.npz, but in tsv format
 """
-import sys
-import traceback
+from sklearn.svm import SVC
 
-import numpy as np
-from sklearn import svm
+import utils as u
 
+u.set_random_state()
 
-def load_data(path):
-    data = np.load(path, allow_pickle=True)
+# Train model
+############################
+X, y, featnames = u.read_data("${TRAIN_NPZ}")
+param_grid = u.read_parameters("${PARAMS_FILE}")
 
-    X = data["X"]
-    Y = data["Y"]
-    genes = data["genes"]
+clf = SVC(gamma="scale", class_weight="balanced", probability=True)
+clf.fit(X, y)
 
-    return X, Y, genes
+# Predict test
+############################
+X_test, _, _ = u.read_data("${TEST_NPZ}")
 
+y_pred = clf.predict(X_test)
+u.save_proba_npz(y_pred)
 
-X_train, y_train, genes = load_data("${TRAIN}")
-X_test, y_test, _ = load_data("${TEST}")
-with open("${SELECTED_FEATURES}") as f:
-    selected = f.read().splitlines()
-    selected = selected[1:]
+# Active features
+############################
+selected = [True for _ in featnames]
 
-selected = [x in selected for x in genes]
-
-# filter matrix by extracted features
-try:
-    if not sum(selected):
-        raise IndexError("No selected features")
-    X_train = X_train[:, selected]
-    X_test = X_test[:, selected]
-except IndexError:
-    traceback.print_exc()
-    np.save("y_proba.npy", np.array([]))
-    sys.exit(77)
-
-# cv, build model and predict
-clf = svm.SVC(gamma="scale", class_weight="balanced", random_state=42, probability=True)
-
-clf.fit(X_train, y_train)
-
-y_proba = clf.predict_proba(X_test)
-np.save("y_proba.npy", y_proba[:, 1])
+u.save_scores_npz(featnames, selected, clf.coef_, param_grid)
+u.save_scores_tsv(featnames, selected, clf.coef_, param_grid)

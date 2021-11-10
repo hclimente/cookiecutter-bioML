@@ -1,38 +1,47 @@
 #!/usr/bin/env python
 """
 Input variables:
-    - TRAIN: path of a numpy array with x.
-    - TEST: path of a numpy array with x.
-    - NET: pickled file with the adjacency matrix
+  - TRAIN_NPZ: path to a .npz file containing the train set. It must contain three
+    elements: an X matrix, a y vector, and a featnames vector (optional)
+  - TEST_NPZ: path to a .npz file containing the test set. It must contain three
+    elements: an X matrix, a y vector, and a featnames vector (optional)
+  - NET_NPZ: path to a .npz file with the adjacency matrix
+  - PARAMS_JSON: path to a json file with the hyperparameters
+    - n_nonzero_coefs
 Output files:
-    - selected.npy
+  - y_proba.npz: predictions on the test set.
+  - scores.npz: contains the featnames, wether each feature was selected, their scores
+    and the hyperparameters selected by cross-validation
+  - scores.tsv: like scores.npz, but in tsv format
 """
-
-import numpy as np
-from scipy.sparse import load_npz
-
 from galore import LogisticGraphLasso
+from sklearn.model_selection import GridSearchCV
 
+import utils as u
 
-np.random.seed(0)
+# Train model
+############################
+X, y, featnames = u.read_data("${TRAIN_NPZ}")
+A = u.read_adjacency("${NET_NPZ}")
+param_grid = u.read_parameters("${PARAMS_FILE}")
 
-train_data = np.load("${TRAIN}", allow_pickle=True)
+gl = LogisticGraphLasso(A, 0, 0)
+clf = GridSearchCV(estimator=gl, param_grid=param_grid, scoring="roc_auc", n_jobs=5)
+clf.fit(X, y)
 
-X_train = train_data["X"]
-y_train = train_data["Y"]
+# Predict test
+############################
+X_test, _, _ = u.read_data("${TEST_NPZ}")
 
-A = load_npz("${NET}")
+y_proba = clf.predict_proba(X_test)
+u.save_proba_npz(y_proba)
 
-# train
-lambda_1 = float("${LAMBDA_1}")
-lambda_2 = float("${LAMBDA_2}")
-gl = LogisticGraphLasso(A, lambda_1, lambda_2)
-gl.fit(X_train, y_train)
+# Score features
+############################
+Wp = clf.best_estimator_.get_W("p").sum(axis=1)
+Wn = clf.best_estimator_.get_W("n").sum(axis=1)
+scores = Wp - Wn
+selected = scores != 0
 
-# test
-test_data = np.load("${TEST}")
-
-X_test = test_data["X"]
-
-y_proba = gl.predict_proba(X_test)
-np.save("y_proba.npy", y_proba[:, 1])
+u.save_scores_npz(featnames, selected, scores, param_grid)
+u.save_scores_tsv(featnames, selected, scores, param_grid)

@@ -1,48 +1,46 @@
 #!/usr/bin/env python
 """
 Input variables:
-    - SELECTED_FEATURES: path to the selected features.
-    - X_TRAIN: path to numpy array with train X matrix.
-    - Y_TRAIN: path to numpy array with train Y vector.
-    - X_TEST: path to numpy array with validation X matrix.
-    - C: number of causal features.
+  - TRAIN_NPZ: path to a .npz file containing three elements: an X matrix, a y vector,
+    and a featnames vector (optional)
+  - PARAMS_JSON: path to a json file with the hyperparameters
+    - n_estimators
+    - max_features
+    - max_depth
+    - criterion
 Output files:
-    - y_pred.npy
+  - scores.npz: contains the score computed for each feature, the featnames and the
+    hyperparameters selected by cross-validation
+  - scores.tsv: like scores.npz, but in tsv format
 """
-
-import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 
 import utils as u
 
-selected_features = np.load("${SELECTED_FEATURES}")
-x_train = np.load("${X_TRAIN}")
-y_train = np.load("${Y_TRAIN}")
-x_test = np.load("${X_TEST}")
-C = int("${C}")
+u.set_random_state()
 
-# filter matrix by extracted features
-try:
-    if not selected_features.any():
-        raise IndexError("No selected features")
-    selected_features = selected_features[0:C]
-    x_train = x_train[:, selected_features]
-    x_test = x_test[:, selected_features]
-except IndexError:
-    u.custom_error(file="y_pred.npy", content=np.array([]))
+# Train model
+############################
+X, y, featnames = u.read_data("${TRAIN_NPZ}", "${SELECTED}")
+param_grid = u.read_parameters("${PARAMS_FILE}")
 
-clf = RandomForestClassifier()
+rf = RandomForestClassifier()
+clf = GridSearchCV(rf, param_grid)
+clf.fit(X, y)
 
-param_grid = {
-    "n_estimators": [200, 500],
-    "max_features": ["auto", "log2"],
-    "max_depth": [4, 6, 8],
-    "criterion": ["gini", "entropy"],
-}
+best_hyperparams = {k: clf.best_params_[k] for k in param_grid.keys()}
 
-cv_clf = GridSearchCV(clf, param_grid)
-cv_clf.fit(x_train, y_train)
+# Predict test
+############################
+X_test, _, _ = u.read_data("${TEST_NPZ}", "${SELECTED}")
 
-y_pred = cv_clf.predict(x_test)
-np.save("y_pred.npy", y_pred)
+y_pred = clf.predict(X_test)
+u.save_proba_npz(y_pred, best_hyperparams)
+
+# Feature importance
+############################
+scores = clf.best_params_.feature_importances_
+
+u.save_scores_npz(featnames, scores, best_hyperparams)
+u.save_scores_tsv(featnames, scores, best_hyperparams)

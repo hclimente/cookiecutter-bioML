@@ -1,51 +1,45 @@
 #!/usr/bin/env python
 """
 Input variables:
-    - SELECTED_FEATURES: path to the selected features.
-    - X_TRAIN: path to numpy array with train X matrix.
-    - Y_TRAIN: path to numpy array with train Y vector.
-    - X_TEST: path to numpy array with validation X matrix.
-    - C: number of causal features.
+  - TRAIN_NPZ: path to a .npz file containing the train set. It must contain three
+    elements: an X matrix, a y vector, and a featnames vector (optional)
+  - TEST_NPZ: path to a .npz file containing the test set. It must contain three
+    elements: an X matrix, a y vector, and a featnames vector (optional)
+  - PARAMS_JSON: path to a json file with the hyperparameters
+    - n_neighbors
 Output files:
-    - y_pred.npy
+  - y_proba.npz: predictions on the test set.
+  - scores.npz: contains the featnames, wether each feature was selected, their scores
+    and the hyperparameters selected by cross-validation
+  - scores.tsv: like scores.npz, but in tsv format
 """
-
-import numpy as np
+from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import cross_val_score
 
 import utils as u
 
-selected_features = np.load("${SELECTED_FEATURES}")
-x_train = np.load("${X_TRAIN}")
-y_train = np.load("${Y_TRAIN}")
-x_test = np.load("${X}TEST}")
-C = int("${C}")
+u.set_random_state()
 
-# filter matrix by extracted features
-try:
-    if not selected_features.any():
-        raise IndexError("No selected features")
-    selected_features = selected_features[0:C]
-    x_train = x_train[:, selected_features]
-    x_test = x_test[:, selected_features]
-except IndexError:
-    u.custom_error(file="y_pred.npy", content=np.array([]))
+# Train model
+############################
+X, y, featnames = u.read_data("${TRAIN_NPZ}")
+param_grid = u.read_parameters("${PARAMS_FILE}")
 
-# cv best number of neighbors
-K = range(1, 11, 2)
-cv_scores = []
+knn = KNeighborsClassifier(weights="distance")
+clf = GridSearchCV(knn, param_grid)
 
-for k in K:
-    knn = KNeighborsClassifier(n_neighbors=k, weights="distance")
-    scores = cross_val_score(knn, x_train, y_train, cv=3, scoring="accuracy")
-    cv_scores.append(scores.mean())
+clf.fit(X, y)
 
-best_k = K[np.argmax(cv_scores)]
+# Predict test
+############################
+X_test, _, _ = u.read_data("${TEST_NPZ}")
 
-# build model and predict
-clf = KNeighborsClassifier(n_neighbors=best_k, weights="distance")
-clf.fit(x_train, y_train)
+y_proba = clf.predict_proba(X_test)
+u.save_proba_npz(y_proba)
 
-y_pred = clf.predict(x_test)
-np.save("y_pred.npy", y_pred)
+# Active features
+############################
+selected = [True for _ in featnames]
+
+u.save_scores_npz(featnames, selected, clf.coef_, param_grid)
+u.save_scores_tsv(featnames, selected, clf.coef_, param_grid)
