@@ -13,28 +13,22 @@ Output files:
     and the hyperparameters selected by cross-validation
   - scores.tsv: like scores.npz, but in tsv format
 """
-from sklearn.linear_model import LogisticRegressionCV
+from sklearn.linear_model import LogisticRegression
 
-import utils as u
+from base.sklearn import SklearnModel
 
-# Train model
-############################
-X, y, featnames = u.read_data("${TRAIN_NPZ}")
-param_grid = u.read_parameters("${PARAMS_FILE}")
+class LogisticRegerssionModel(SklearnModel):
+    def __init__(self) -> None:
+        lr = LogisticRegression()
+        super().__init__(lr)
+        
+    def score_features(self):
+        return self.clf.coef_
+    
+    def select_features(self, scores):
+        return [True for _ in scores]
 
-clf = LogisticRegressionCV(**param_grid)
-clf.fit(X, y)
-
-# Predict test
-############################
-X_test, _, _ = u.read_data("${TEST_NPZ}")
-
-y_proba = clf.predict_proba(X_test)
-u.save_proba_npz(y_proba)
-
-# Active features
-############################
-selected = clf.coef_ != 0
-
-u.save_scores_npz(featnames, selected, clf.coef_, param_grid)
-u.save_scores_tsv(featnames, selected, clf.coef_, param_grid)
+if __name__ == "__main__":
+    model = LogisticRegerssionModel()
+    model.train("${TRAIN_NPZ}", "${SELECTED_NPZ}", "${PARAMS_FILE}")
+    model.predict_proba("${TEST_NPZ}")

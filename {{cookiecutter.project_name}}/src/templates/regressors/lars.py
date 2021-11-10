@@ -15,26 +15,20 @@ Output files:
 """
 from sklearn.linear_model import Lars
 
-import utils as u
+from base.sklearn import SklearnModel
 
-# Train model
-############################
-X, y, featnames = u.read_data("${TRAIN_NPZ}")
-param_grid = u.read_parameters("${PARAMS_FILE}")
+class LarsModel(SklearnModel):
+    def __init__(self) -> None:
+        lars = Lars()
+        super().__init__(lars)
+        
+    def score_features(self):
+        return self.clf.coef_
+    
+    def select_features(self, scores):
+        return scores != 0
 
-clf = Lars(**param_grid)
-clf.fit(X, y)
-
-# Predict test
-############################
-X_test, _, _ = u.read_data("${TEST_NPZ}")
-
-y_pred = clf.predict(X_test)
-u.save_preds_npz(y_pred)
-
-# Active features
-############################
-selected = clf.coef_ != 0
-
-u.save_scores_npz(featnames, selected, clf.coef_, param_grid)
-u.save_scores_tsv(featnames, selected, clf.coef_, param_grid)
+if __name__ == "__main__":
+    model = LarsModel()
+    model.train("${TRAIN_NPZ}", "${SELECTED_NPZ}", "${PARAMS_FILE}")
+    model.predict("${TEST_NPZ}")

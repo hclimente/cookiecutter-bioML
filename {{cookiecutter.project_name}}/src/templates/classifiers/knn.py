@@ -13,33 +13,23 @@ Output files:
     and the hyperparameters selected by cross-validation
   - scores.tsv: like scores.npz, but in tsv format
 """
-from sklearn.model_selection import GridSearchCV
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import KNeighborsClassifier
 
+from base.sklearn import SklearnModel
 import utils as u
 
-u.set_random_state()
+class kNNModel(SklearnModel):
+    def __init__(self) -> None:
+        knn = KNeighborsClassifier(weights="distance")
+        super().__init__(knn)
+        
+    def score_features(self):
+        return self.clf.coef_
+    
+    def select_features(self, scores):
+        return scores != 0
 
-# Train model
-############################
-X, y, featnames = u.read_data("${TRAIN_NPZ}")
-param_grid = u.read_parameters("${PARAMS_FILE}")
-
-knn = KNeighborsClassifier(weights="distance")
-clf = GridSearchCV(knn, param_grid)
-
-clf.fit(X, y)
-
-# Predict test
-############################
-X_test, _, _ = u.read_data("${TEST_NPZ}")
-
-y_proba = clf.predict_proba(X_test)
-u.save_proba_npz(y_proba)
-
-# Active features
-############################
-selected = [True for _ in featnames]
-
-u.save_scores_npz(featnames, selected, clf.coef_, param_grid)
-u.save_scores_tsv(featnames, selected, clf.coef_, param_grid)
+if __name__ == "__main__":
+    model = kNNModel()
+    model.train("${TRAIN_NPZ}", "${SELECTED_NPZ}", "${PARAMS_FILE}")
+    model.predict_proba("${TEST_NPZ}")

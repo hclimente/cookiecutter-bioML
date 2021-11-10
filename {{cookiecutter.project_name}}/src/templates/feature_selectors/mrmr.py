@@ -1,30 +1,37 @@
 #!/usr/bin/env python
 """
 Input variables:
-    - X_TRAIN: path of a numpy array with _train
-    - Y_TRAIN: path of a numpy array with y.
-    - MODE: regression or classification.
-    - C: number of features to select.
+  - TRAIN_NPZ: path to a .npz file containing the train set. It must contain three
+    elements: an X matrix, a y vector, and a featnames vector (optional)
+  - TEST_NPZ: path to a .npz file containing the test set. It must contain three
+    elements: an X matrix, a y vector, and a featnames vector (optional)
+  - PARAMS_JSON: path to a json file with the hyperparameters
+    - n_nonzero_coefs
 Output files:
-    - features_mrmr.npy: numpy array with the 0-based index of
-    the selected features.
+  - y_proba.npz: predictions on the test set.
+  - scores.npz: contains the featnames, wether each feature was selected, their scores
+    and the hyperparameters selected by cross-validation
+  - scores.tsv: like scores.npz, but in tsv format
 """
-
 import numpy as np
 import subprocess
 
-x_train = np.load("${X_TRAIN}")
-y_train = np.load("${Y_TRAIN}")
+import utils as u
 
-# write dataset
-ds = np.hstack((np.expand_dims(y_train, axis=1), x_train))
-cols = "y," + ",".join([str(feat) for feat in np.arange(x_train.shape[1])])
+# Prepare data
+############################
+X, y, featnames = u.read_data("${TRAIN_NPZ}")
+ds = np.hstack((np.expand_dims(y, axis=1), X))
+cols = "y," + ",".join(featnames)
 
 np.savetxt("dataset.csv", ds, header=cols, fmt="%1.3f", delimiter=",", comments="")
 discretization = "-t 0" if "${MODE}" == "regression" else ""
 
-# run mrmr
-samples, features = x_train.shape
+# Run mRMR
+############################
+samples, features = X.shape
+param_grid = u.read_parameters("${PARAMS_FILE}")
+
 out = subprocess.check_output(
     [
         "mrmr",
@@ -32,7 +39,7 @@ out = subprocess.check_output(
         "dataset.csv",
         discretization,
         "-n",
-        "${C}",
+        param_grid["num_features"],
         "-s",
         str(samples),
         "-v",
@@ -40,17 +47,22 @@ out = subprocess.check_output(
     ]
 )
 
+# Get selected features
+############################
 flag = False
-features = []
+selected = []
 for line in out.decode("ascii").split("\\n"):
     if flag and "Name" not in line:
         if not line:
             flag = False
         else:
             f = line.split("\\t")[2].strip()
-            features.append(int(f))
+            selected.append(int(f))
     elif "mRMR features" in line:
         flag = True
 
-feats_pred = np.array(features)
-np.save("features_mrmr.npy", feats_pred)
+scores = [0 for _ in selected]
+selected = np.array(selected)
+
+u.save_scores_npz(featnames, selected, scores, param_grid)
+u.save_scores_tsv(featnames, selected, scores, param_grid)

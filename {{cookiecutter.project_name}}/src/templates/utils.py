@@ -37,9 +37,12 @@ def read_adjacency(A_npz: str):
 
 
 def read_parameters(json_path: str) -> dict:
-    f = open(json_path)
 
-    return json.load(f)
+    try:
+        f = open(json_path)
+        return json.load(f)
+    except FileNotFoundError:
+        return {}
 
 
 # Output functions
@@ -53,8 +56,8 @@ def save_scores_npz(
     np.savez(
         "scores.npz",
         featnames=featnames,
-        scores=scores,
-        selected=selected,
+        scores=sanitize_vector(scores),
+        selected=sanitize_vector(selected),
         hyperparams=hyperparams,
     )
 
@@ -65,9 +68,10 @@ def save_scores_tsv(
     scores: npt.ArrayLike = None,
     hyperparams: dict = {},
 ):
-    features_dict = {"feature": featnames, "selected": selected}
+    features_dict = {"feature": featnames,
+                     "selected": sanitize_vector(selected)}
     if scores is not None:
-        features_dict["score"] = scores
+        features_dict["score"] = sanitize_vector(scores)
 
     with open("scores.tsv", "a") as FILE:
         for key, value in hyperparams.items():
@@ -76,11 +80,11 @@ def save_scores_tsv(
 
 
 def save_preds_npz(preds: npt.ArrayLike = None, hyperparams: dict = None):
-    np.savez("y_pred.npz", preds=preds, hyperparams=hyperparams)
+    np.savez("y_pred.npz", preds=sanitize_vector(preds), hyperparams=hyperparams)
 
 
 def save_proba_npz(proba: npt.ArrayLike = None, hyperparams: dict = None):
-    np.savez("y_proba.npz", proba=proba, hyperparams=hyperparams)
+    np.savez("y_proba.npz", proba=sanitize_vector(proba), hyperparams=hyperparams)
 
 
 # Other functions
@@ -94,3 +98,11 @@ def custom_error(error: int = 77, file: str = None, content=None):
     traceback.print_exc()
     np.save(file, content)
     sys.exit(error)
+
+
+def sanitize_vector(x: npt.ArrayLike):
+    if x is not None:
+        x = np.array(x)
+        x = x.flatten()
+    
+    return x

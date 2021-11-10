@@ -21,32 +21,16 @@ process read_data {
 }
 
 process simulate_data {
+    
+    input:
+        val NUM_SAMPLES
+        val NUM_FEATURES
 
     output:
-        tuple val("test"), path("Xy.npz")
+        tuple val("test"), path("simulation.npz")
 
     script:
-    """
-    #!/usr/bin/env python
-
-    import numpy as np
-
-    x = np.random.rand(20,10)
-
-    n = x.shape[0]
-
-    x1 = x[:, 0]
-    x2 = 2*x[:, 1]
-    x3 = 4*x[:, 2]
-    x4 = 8*x[:, 3]
-
-    eps = np.random.normal(loc=0.0, scale=1.0, size=n)
-
-    y = x1 + x2 + x3 + x4 + eps
-    y = np.where(y > 0, 1, -1)
-
-    np.savez("Xy.npz", X=x, y=y)
-    """
+        template "simulation/linear_0.py"
 
 }
 
@@ -80,18 +64,19 @@ process logreg {
         tuple val("model=logreg;${PARAMS}"), path(TEST_NPZ), path('y_proba.npz')
 
     script:
-        template 'feature_selectors/lars.py'
+        template 'classifiers/logreg.py'
 
 }
 
-process predict {
+process random_forest {
 
     input:
-        tuple val(PARAMS), path(TRAIN_NPZ), path(TEST_NPZ), path(SELECTED)
+        tuple val(PARAMS), path(TRAIN_NPZ), path(TEST_NPZ)
+        path SELECTED
         path PARAMS_FILE
 
     output:
-        tuple val(PARAMS), path(TEST_NPZ), path("y_proba.npz")
+        tuple val("model=random_forest;${PARAMS}"), path(TEST_NPZ), path('y_proba.npz')
 
     script:
         template "classifiers/random_forest.py"
@@ -113,14 +98,15 @@ process analyze_predictions {
 
 }
 
-json = file("lars.json")
-json2 = file("rf.json")
+json_logreg = file("$baseDir/src/templates/classifier/logreg.json")
+json_rf = file("$baseDir/src/templates/classifier/random_forest.json")
 
 workflow {
     main:
-        simulate_data()
+        simulate_data(100, 20)
         split_data(simulate_data.out, 0..(params.splits - 1), params.splits)
-        logreg(split_data.out, json)
+        logreg(split_data.out, json_logreg)
+        random_forest(split_data.out, ".", json_rf)
         analyze_predictions(logreg.out)
     emit:
         analyze_predictions.out.collectFile(skip: 1, keepHeader: true)

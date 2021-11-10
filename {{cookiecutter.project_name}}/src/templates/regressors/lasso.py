@@ -13,28 +13,22 @@ Output files:
     and the hyperparameters selected by cross-validation
   - scores.tsv: like scores.npz, but in tsv format
 """
-from sklearn.linear_model import LassoCV
+from sklearn.linear_model import Lasso
 
-import utils as u
+from base.sklearn import SklearnModel
 
-# Train model
-############################
-X, y, featnames = u.read_data("${TRAIN_NPZ}")
-param_grid = u.read_parameters("${PARAMS_FILE}")
+class LassoModel(SklearnModel):
+    def __init__(self) -> None:
+        lasso = Lasso()
+        super().__init__(lasso)
+        
+    def score_features(self):
+        return self.clf.coef_
+    
+    def select_features(self, scores):
+        return scores != 0
 
-clf = LassoCV(**param_grid)
-clf.fit(X, y)
-
-# Predict test
-############################
-X_test, _, _ = u.read_data("${TEST_NPZ}")
-
-y_pred = clf.predict(X_test)
-u.save_preds_npz(y_pred)
-
-# Active features
-############################
-selected = clf.coef_ != 0
-
-u.save_scores_npz(featnames, selected, clf.coef_, param_grid)
-u.save_scores_tsv(featnames, selected, clf.coef_, param_grid)
+if __name__ == "__main__":
+    model = LassoModel()
+    model.train("${TRAIN_NPZ}", "${SELECTED_NPZ}", "${PARAMS_FILE}")
+    model.predict("${TEST_NPZ}")

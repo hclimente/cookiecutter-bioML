@@ -15,33 +15,26 @@ Output files:
   - scores.tsv: like scores.npz, but in tsv format
 """
 from galore import LogisticGraphLasso
-from sklearn.model_selection import GridSearchCV
 
+from base.sklearn import SklearnModel
 import utils as u
 
-# Train model
-############################
-X, y, featnames = u.read_data("${TRAIN_NPZ}")
-A = u.read_adjacency("${NET_NPZ}")
-param_grid = u.read_parameters("${PARAMS_FILE}")
+class LogisticGraphLassoModel(SklearnModel):
+    def __init__(self, adjacency_npz) -> None:
+        A = u.read_adjacency(adjacency_npz)
+        lgl = LogisticGraphLasso(A, 0, 0)
+        super().__init__(lgl)
+        
+    def score_features(self):
+        Wp = self.clf.best_estimator_.get_W("p").sum(axis=1)
+        Wn = self.clf.best_estimator_.get_W("n").sum(axis=1)
+        
+        return Wp - Wn
+    
+    def select_features(self, scores):
+        return scores != 0
 
-gl = LogisticGraphLasso(A, 0, 0)
-clf = GridSearchCV(estimator=gl, param_grid=param_grid, scoring="roc_auc", n_jobs=5)
-clf.fit(X, y)
-
-# Predict test
-############################
-X_test, _, _ = u.read_data("${TEST_NPZ}")
-
-y_proba = clf.predict_proba(X_test)
-u.save_proba_npz(y_proba)
-
-# Score features
-############################
-Wp = clf.best_estimator_.get_W("p").sum(axis=1)
-Wn = clf.best_estimator_.get_W("n").sum(axis=1)
-scores = Wp - Wn
-selected = scores != 0
-
-u.save_scores_npz(featnames, selected, scores, param_grid)
-u.save_scores_tsv(featnames, selected, scores, param_grid)
+if __name__ == "__main__":
+    model = LogisticGraphLassoModel("${NET_NPZ}")
+    model.train("${TRAIN_NPZ}", "${SELECTED_NPZ}", "${PARAMS_FILE}")
+    model.predict_proba("${TEST_NPZ}")

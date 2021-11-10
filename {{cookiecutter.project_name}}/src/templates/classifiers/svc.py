@@ -15,28 +15,20 @@ Output files:
 """
 from sklearn.svm import SVC
 
-import utils as u
+from base.sklearn import SklearnModel
 
-u.set_random_state()
+class SVCModel(SklearnModel):
+    def __init__(self) -> None:
+        svc = SVC(gamma="scale", class_weight="balanced", probability=True)
+        super().__init__(svc)
+        
+    def score_features(self):
+        return self.clf.coef_
+    
+    def select_features(self, scores):
+        return [True for _ in scores]
 
-# Train model
-############################
-X, y, featnames = u.read_data("${TRAIN_NPZ}")
-param_grid = u.read_parameters("${PARAMS_FILE}")
-
-clf = SVC(gamma="scale", class_weight="balanced", probability=True)
-clf.fit(X, y)
-
-# Predict test
-############################
-X_test, _, _ = u.read_data("${TEST_NPZ}")
-
-y_pred = clf.predict(X_test)
-u.save_proba_npz(y_pred)
-
-# Active features
-############################
-selected = [True for _ in featnames]
-
-u.save_scores_npz(featnames, selected, clf.coef_, param_grid)
-u.save_scores_tsv(featnames, selected, clf.coef_, param_grid)
+if __name__ == "__main__":
+    model = SVCModel()
+    model.train("${TRAIN_NPZ}", "${SELECTED_NPZ}", "${PARAMS_FILE}")
+    model.predict_proba("${TEST_NPZ}")
