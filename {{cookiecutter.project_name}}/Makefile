@@ -11,6 +11,9 @@ setup: $(CONDA_ENV)
 	$(CONDA_ACTIVATE) && R -e "IRkernel::installspec()"
 	pre-commit install
 
+docker_build: Dockerfile
+	docker build -t {{cookiecutter.project_name}} .
+
 $(CONDA_ENV): environment.yml
 	mamba env create --force --prefix $(CONDA_ENV) --file environment.yml
 
