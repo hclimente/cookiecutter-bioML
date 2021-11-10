@@ -18,8 +18,7 @@ dependencies:
   - python=3
   - r-irkernel
   # usually good to have
-  - numpy
-  - numexpr
+  - jax
   - r
   - rpy2
   - r-tidyverse
