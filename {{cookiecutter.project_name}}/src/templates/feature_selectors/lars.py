@@ -1,25 +1,35 @@
 #!/usr/bin/env python
 """
 Input variables:
-    - X_TRAIN: path of a numpy array with x.
-    - Y_TRAIN: path of a numpy array with y.
-    - C: number of features to select.
+  - TRAIN_NPZ: path to a .npz file containing three elements: an X matrix, a y vector,
+    and a featnames vector (optional)
+  - PARAMS_JSON: path to a json file with the hyperparameters
+    - n_nonzero_coefs
 Output files:
-    - features_lars.npy: numpy array with the 0-based index of
-    the selected features.
+  - selected.npz: contains the featnames of the selected features, their scores and the
+    hyperparameters selected by cross-validation
+  - selected.tsv: like selected.npz, but in tsv format.
 """
-
 import numpy as np
-from sklearn.linear_model import Lars
+from sklearn.linear_model import LarsCV
 from sklearn.feature_selection import SelectFromModel
 
-x_train = np.load("${X_TRAIN}")
-y_train = np.load("${Y_TRAIN}")
-C = int("${C}")
+import utils as u
 
-clf = Lars(n_nonzero_coefs=C)
-clf.fit(x_train, y_train)
+# Read data
+############################
+X, y, featnames = u.read_data("${TRAIN_NPZ}")
+param_grid = u.read_parameters("${PARAMS_FILE}")
 
-sfm = SelectFromModel(clf, prefit=True)
+# Run algorithm
+############################
+clf = LarsCV(**param_grid)
+clf.fit(X, y)
+
+sfm = SelectFromModel(clf.best_estimator_, prefit=True)
 features = np.where(sfm.get_support())[0]
-np.save("features_lars.npy", features)
+
+# Save selected features
+############################
+u.save_selected_npz(features, param_grid)
+u.save_selected_tsv(features, param_grid)

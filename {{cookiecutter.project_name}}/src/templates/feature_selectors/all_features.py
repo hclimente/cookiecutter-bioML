@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 """
 Input variables:
-    - X_TRAIN: path of a numpy array with x.
+  - TRAIN_NPZ: path to a .npz file containing three elements: an X matrix, a y vector,
+    and a featnames vector
 Output files:
-    - all_features.npy: numpy array with the 0-based index of
-    the selected features.
+  - selected.npz: contains the featnames of all the features
 """
+import utils as u
 
-import numpy as np
+u.set_random_state()
 
-x_train = np.load("${X_TRAIN}")
+# Read data
+############################
+_, _, featnames = u.read_data("${TRAIN_NPZ}")
 
-features = np.arange(x_train.shape[1])
-np.save("all_features.npy", features)
+# Save selected features
+############################
+u.save_selected_npz(featnames)

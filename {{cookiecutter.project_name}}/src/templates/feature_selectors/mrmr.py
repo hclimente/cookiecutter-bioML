@@ -32,7 +32,7 @@ out = subprocess.check_output(
         "dataset.csv",
         discretization,
         "-n",
-        int("${C}"),
+        "${C}",
         "-s",
         str(samples),
         "-v",

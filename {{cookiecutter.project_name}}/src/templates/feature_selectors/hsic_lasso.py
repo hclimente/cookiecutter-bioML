@@ -1,41 +1,41 @@
 #!/usr/bin/env python
 """
 Input variables:
-    - X_TRAIN: path of a numpy array with x.
-    - Y_TRAIN: path of a numpy array with y.
-    - COVARS: path of a numpy array with covariates.
-    - FEATNAMES: path of a numpy array with feature names.
-    - MODE: regression or classification.
-    - HL_SELECT: number of features to select.
-    - HL_B: size of the block.
-    - HL_M: number of permutations.
+  - TRAIN_NPZ: path to a .npz file containing three elements: an X matrix, a y vector,
+    and a featnames vector (optional)
+  - PARAMS_JSON: path to a json file with the hyperparameters
+    - num_feat
+    - B
+    - M
+    - covars
 Output files:
-    - features_hl.npy: numpy array with the 0-based index of
-    the selected features.
+  - selected.npz: contains the featnames of the selected features, their scores and the
+    hyperparameters selected by cross-validation
+  - selected.tsv: like selected.npz, but in tsv format.
 """
-
 import numpy as np
 from pyHSICLasso import HSICLasso
 
 import utils as u
 
+u.set_random_state()
+
+# Read data
+############################
+X, y, featnames = u.read_data("${TRAIN_NPZ}")
+param_grid = u.read_parameters("${PARAMS_FILE}")
+
+# Run algorithm
+############################
 hl = HSICLasso()
-
-np.random.seed(0)
-hl.X_in = np.load("${X_TRAIN}").T
-hl.Y_in = np.load("${Y_TRAIN}").T
-hl.Y_in = np.expand_dims(hl.Y_in, 0)
-hl.featname = np.load("${FEATNAMES}")
-covars = np.load("${COVARS}")
-
-# TODO parameters as dictionary
-C = int("${HL_SELECT}")
-block_size = int("${HL_B}")
-permutations = int("${HL_M}")
+hl.input(X, y, featnames)
 
 try:
-    hl.classification(C, B=block_size, M=permutations, covars=covars)
+    hl.classification(**param_grid)
 except MemoryError:
-    u.custom_error(file="features_hl.npy", content=np.array([]))
+    u.custom_error(file="scores.npz", content=np.array([]))
 
-np.save("features_hl.npy", hl.A)
+# Save selected features
+############################
+u.save_selected_npz(hl.A, featnames, param_grid)
+u.save_selected_tsv(hl.A, featnames, param_grid)
