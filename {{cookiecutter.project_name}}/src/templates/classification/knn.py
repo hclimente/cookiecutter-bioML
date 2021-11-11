@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class kNNModel(SklearnModel):
     def __init__(self) -> None:
         knn = KNeighborsClassifier(weights="distance")
-        super().__init__(knn)
+        super().__init__(knn, "knn")
 
     def score_features(self):
         return [1 for _ in range(self.clf.n_features_in_)]

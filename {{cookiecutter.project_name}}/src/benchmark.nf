@@ -11,7 +11,7 @@ mode = params.mode
 
 // TODO take the algorithms from the config file
 feature_selection_algorithms = ['all_features']
-model_algorithms = ['logreg', 'random_forest', 'svc', 'knn']
+model_algorithms = ['logistic_regression', 'random_forest', 'svc', 'knn']
 performance_metrics = ['auc_roc', 'tpr_fpr']
 
 process simulate_data {

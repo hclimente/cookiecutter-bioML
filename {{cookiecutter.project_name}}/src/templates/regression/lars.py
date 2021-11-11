@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class LarsModel(SklearnModel):
     def __init__(self) -> None:
         lars = Lars()
-        super().__init__(lars)
+        super().__init__(lars, "lars")
 
     def score_features(self):
         return self.clf.best_estimator_.coef_

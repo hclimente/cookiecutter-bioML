@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class GBDTModel(SklearnModel):
     def __init__(self) -> None:
         gbdt = LGBMClassifier(objective="binary", n_estimators=1000)
-        super().__init__(gbdt)
+        super().__init__(gbdt, "gbdt")
 
     def score_features(self):
         return self.clf.best_estimator_.feature_importances_

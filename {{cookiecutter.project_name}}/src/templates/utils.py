@@ -1,4 +1,3 @@
-import os
 import random
 import sys
 import traceback
@@ -37,14 +36,11 @@ def read_adjacency(A_npz: str):
     return load_npz(A_npz)
 
 
-def read_parameters(params_yaml: str) -> dict:
+def read_parameters(params_yaml: str, clf_name: str) -> dict:
 
     try:
-        clf_name = os.path.basename(__file__)
-        clf_name = os.path.splitext(clf_name)[0]
-
         f = open(params_yaml)
-        return yaml.load(f)[clf_name]
+        return yaml.load(f, Loader=yaml.Loader)[clf_name]
     except FileNotFoundError:
         return {}
 

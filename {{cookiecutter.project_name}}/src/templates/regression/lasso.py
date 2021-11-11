@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class LassoModel(SklearnModel):
     def __init__(self) -> None:
         lasso = Lasso()
-        super().__init__(lasso)
+        super().__init__(lasso, "lasso")
 
     def score_features(self):
         return self.clf.best_estimator_.coef_

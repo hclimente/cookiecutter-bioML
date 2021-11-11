@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class LogisticRegerssionModel(SklearnModel):
     def __init__(self) -> None:
         lr = LogisticRegression()
-        super().__init__(lr)
+        super().__init__(lr, "logistic_regression")
 
     def score_features(self):
         return self.clf.best_estimator_.coef_

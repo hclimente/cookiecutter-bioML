@@ -24,7 +24,7 @@ class LogisticGraphLassoModel(SklearnModel):
     def __init__(self, adjacency_npz) -> None:
         A = u.read_adjacency(adjacency_npz)
         lgl = LogisticGraphLasso(A, 0, 0)
-        super().__init__(lgl)
+        super().__init__(lgl, "logistic_graph_lasso")
 
     def score_features(self):
         Wp = self.clf.best_estimator_.get_W("p").sum(axis=1)

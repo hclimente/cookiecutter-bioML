@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class RandomForestModel(SklearnModel):
     def __init__(self) -> None:
         rf = RandomForestClassifier()
-        super().__init__(rf)
+        super().__init__(rf, "random_forest")
 
     def score_features(self):
         return self.clf.best_estimator_.feature_importances_
