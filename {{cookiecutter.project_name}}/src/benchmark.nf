@@ -1,27 +1,20 @@
 nextflow.enable.dsl = 2
 
+// Parameters
+/////////////////////////////////////////////////////////
 params.out = '.'
 params.splits = 5
+params.mode = "classification"
 
-process read_data {
+config = file("${params.out}/config.yaml")
+mode = params.mode
 
-    tag "${phenotypes[PHENO]}"
-
-    input:
-        file DATA from expression
-        tuple val(PHENO), val(WHICH_CONTROLS),val(WHICH_GROUP) from experiments
-        file GXG from string
-
-    output:
-        tuple val("pheno=${phenotypes[PHENO]};controls=${phenotypes[WHICH_CONTROLS]};subgroup=${phenotypes[WHICH_GROUP]}"), "Xy.npz", "A.npz"
-
-    script:
-        template 'data/makeXyA.py'
-
-}
+// TODO take the algorithms from the config file
+feature_selection_algorithms = ['all_features']
+model_algorithms = ['logreg', 'random_forest', 'svc', 'knn']
 
 process simulate_data {
-    
+
     input:
         val NUM_SAMPLES
         val NUM_FEATURES
@@ -30,10 +23,9 @@ process simulate_data {
         tuple val("test"), path("simulation.npz")
 
     script:
-        template "simulation/linear_0.py"
+        template "simulation/categorical_1.py"
 
 }
-
 
 process split_data {
 
@@ -50,36 +42,37 @@ process split_data {
 
 }
 
-lambdas_logreg = [0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5]
+process feature_selection {
 
-process logreg {
-
-    tag "${PARAMS};lambda=${LAMBDA}"
+    tag "${MODEL};${PARAMS}"
 
     input:
+        each MODEL
         tuple val(PARAMS), path(TRAIN_NPZ), path(TEST_NPZ)
         path PARAMS_FILE
 
     output:
-        tuple val("model=logreg;${PARAMS}"), path(TEST_NPZ), path('y_proba.npz')
+        tuple val("feature_selection=${MODEL}"), path(TRAIN_NPZ), path(TEST_NPZ), path('scores.npz')
 
     script:
-        template 'classifiers/logreg.py'
+        template "feature_selection/${MODEL}.py"
 
 }
 
-process random_forest {
+process model {
+
+    tag "${MODEL};${PARAMS}"
 
     input:
-        tuple val(PARAMS), path(TRAIN_NPZ), path(TEST_NPZ)
-        path SELECTED
+        each MODEL
+        tuple val(PARAMS), path(TRAIN_NPZ), path(TEST_NPZ), path(SCORES_NPZ)
         path PARAMS_FILE
 
     output:
-        tuple val("model=random_forest;${PARAMS}"), path(TEST_NPZ), path('y_proba.npz')
+        tuple val("model=${MODEL};${PARAMS}"), path(TEST_NPZ), path('y_proba.npz')
 
     script:
-        template "classifiers/random_forest.py"
+        template "${mode}/${MODEL}.py"
 
 }
 
@@ -91,23 +84,27 @@ process analyze_predictions {
         tuple val(PARAMS), path(TEST_NPZ), path(Y_PROBA)
 
     output:
-        file 'prediction_stats'
+        path 'prediction_stats'
 
     script:
         template 'analysis/roc.py'
 
 }
 
-json_logreg = file("$baseDir/src/templates/classifier/logreg.json")
-json_rf = file("$baseDir/src/templates/classifier/random_forest.json")
+
+workflow models {
+    take: data
+    main:
+        split_data(data, 0..(params.splits - 1), params.splits)
+        feature_selection(feature_selection_algorithms, split_data.out, config)
+        model(model_algorithms, feature_selection.out, config)
+        analyze_predictions(model.out)
+    emit:
+        analyze_predictions.out.collectFile(name: "${params.out}/sample.txt", skip: 1, keepHeader: true)
+}
 
 workflow {
     main:
         simulate_data(100, 20)
-        split_data(simulate_data.out, 0..(params.splits - 1), params.splits)
-        logreg(split_data.out, json_logreg)
-        random_forest(split_data.out, ".", json_rf)
-        analyze_predictions(logreg.out)
-    emit:
-        analyze_predictions.out.collectFile(skip: 1, keepHeader: true)
+        models(simulate_data.out)
 }

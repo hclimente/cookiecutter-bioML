@@ -4,22 +4,43 @@ import numpy as np
 
 from base.simulator import Simulator
 
-class Categorical1(Simulator):
-    
-    def __init__(self, num_samples, num_features, correlated=False, binarize=False) -> None:
-        super().__init__(num_samples, num_features, correlated, binarize)
-        
-    def formula(self, X):
-        
-        y = np.exp(X[:, 0:10].sum(axis=1))
 
-        return y 
-    
-    def noise(self, num_features):
-        return np.zeros(num_features)
-    
+class Categorical3(Simulator):
+    def __init__(
+        self, num_samples, num_features, correlated=False, binarize=False
+    ) -> None:
+        super().__init__(num_samples, num_features, correlated, binarize)
+
+    def formula(self, X):
+
+        y = X[:, 0:10].sum(axis=1) + 10 ** 0.5
+
+        return y
+
+    def noise(self, num_samples):
+        return np.zeros(num_samples)
+
     def binarize(self, y):
-        return ((y / (y + 1)) > 0.5).astype(float)
-    
+        def f(x):
+            if x < 0:
+                y = 0
+            elif x < 2:
+                y = 1
+            elif x < 4:
+                y = 2
+            elif x < 6:
+                y = 3
+            elif x < 8:
+                y = 4
+            else:
+                y = 5
+
+            return y
+
+        y = np.vectorize(f)(y)
+
+        return y
+
+
 if __name__ == "__main__":
-    Categorical1(int("${NUM_SAMPLES}"), int("${NUM_FEATURES}", True, True))
+    Categorical3(int("${NUM_SAMPLES}"), int("${NUM_FEATURES}"), True, True)

@@ -14,6 +14,9 @@ setup: $(CONDA_ENV)
 docker_build: Dockerfile
 	docker build -t {{cookiecutter.project_name}} .
 
+benchmark: results/benchmark/config.yaml
+	nextflow src/benchmark.nf --out results/benchmark
+
 $(CONDA_ENV): environment.yml
 	mamba env create --force --prefix $(CONDA_ENV) --file environment.yml
 

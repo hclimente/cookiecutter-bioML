@@ -16,4 +16,7 @@ _, _, featnames = u.read_data("${TRAIN_NPZ}")
 
 # Save selected features
 ############################
-u.save_selected_npz(featnames)
+selected = [True for _ in featnames]
+scores = [0 for _ in featnames]
+
+u.save_scores_npz(featnames, selected, scores, {})

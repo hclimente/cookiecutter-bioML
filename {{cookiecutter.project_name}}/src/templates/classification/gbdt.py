@@ -17,18 +17,20 @@ from lightgbm import LGBMClassifier
 
 from base.sklearn import SklearnModel
 
+
 class GBDTModel(SklearnModel):
     def __init__(self) -> None:
         gbdt = LGBMClassifier(objective="binary", n_estimators=1000)
         super().__init__(gbdt)
-        
+
     def score_features(self):
-        return self.clf.best_params_.feature_importances_
-    
+        return self.clf.best_estimator_.feature_importances_
+
     def select_features(self, scores):
         return [True for _ in scores]
 
+
 if __name__ == "__main__":
     model = GBDTModel()
-    model.train("${TRAIN_NPZ}", "${SELECTED_NPZ}", "${PARAMS_FILE}")
-    model.predict_proba("${TEST_NPZ}")
+    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}", "${PARAMS_FILE}")
+    model.predict_proba("${TEST_NPZ}", "${SCORES_NPZ}")

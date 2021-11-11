@@ -1,6 +1,0 @@
-{
-    "n_estimators": [200, 500],
-    "max_features": ["auto", "log2"],
-    "max_depth" : [4,6,8],
-    "criterion" :["gini", "entropy"]
-}

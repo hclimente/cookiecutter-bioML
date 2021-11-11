@@ -13,22 +13,24 @@ Output files:
     hyperparameters selected by cross-validation
   - scores.tsv: like scores.npz, but in tsv format
 """
-from sklearn.linear_model import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 from base.sklearn import SklearnModel
+
 
 class RandomForestModel(SklearnModel):
     def __init__(self) -> None:
         rf = RandomForestClassifier()
         super().__init__(rf)
-        
+
     def score_features(self):
-        return clf.best_params_.feature_importances_
-    
+        return self.clf.best_estimator_.feature_importances_
+
     def select_features(self, scores):
         return scores != 0
 
+
 if __name__ == "__main__":
     model = RandomForestModel()
-    model.train("${TRAIN_NPZ}", "${SELECTED_NPZ}", "${PARAMS_FILE}")
-    model.predict_proba("${TEST_NPZ}")
+    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}", "${PARAMS_FILE}")
+    model.predict_proba("${TEST_NPZ}", "${SCORES_NPZ}")

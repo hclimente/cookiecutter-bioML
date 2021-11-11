@@ -1,4 +1,4 @@
-import json
+import os
 import random
 import sys
 import traceback
@@ -6,13 +6,14 @@ import traceback
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+import yaml
 from scipy.sparse import load_npz
 
 
 # Input functions
 ###########################
 def read_data(data_npz: str, selected_npz: str = ""):
-    data = np.load(data_npz)
+    data = np.load(data_npz, allow_pickle=True)
 
     X = data["X"]
     y = data["y"]
@@ -36,11 +37,14 @@ def read_adjacency(A_npz: str):
     return load_npz(A_npz)
 
 
-def read_parameters(json_path: str) -> dict:
+def read_parameters(params_yaml: str) -> dict:
 
     try:
-        f = open(json_path)
-        return json.load(f)
+        clf_name = os.path.basename(__file__)
+        clf_name = os.path.splitext(clf_name)[0]
+
+        f = open(params_yaml)
+        return yaml.load(f)[clf_name]
     except FileNotFoundError:
         return {}
 
@@ -68,8 +72,7 @@ def save_scores_tsv(
     scores: npt.ArrayLike = None,
     hyperparams: dict = {},
 ):
-    features_dict = {"feature": featnames,
-                     "selected": sanitize_vector(selected)}
+    features_dict = {"feature": featnames, "selected": sanitize_vector(selected)}
     if scores is not None:
         features_dict["score"] = sanitize_vector(scores)
 
@@ -104,5 +107,5 @@ def sanitize_vector(x: npt.ArrayLike):
     if x is not None:
         x = np.array(x)
         x = x.flatten()
-    
+
     return x

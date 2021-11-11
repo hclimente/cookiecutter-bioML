@@ -6,30 +6,34 @@ Input variables:
   - TEST_NPZ: path to a .npz file containing the test set. It must contain three
     elements: an X matrix, a y vector, and a featnames vector (optional)
   - PARAMS_JSON: path to a json file with the hyperparameters
-    - n_neighbors
+    - None
 Output files:
   - y_proba.npz: predictions on the test set.
   - scores.npz: contains the featnames, wether each feature was selected, their scores
     and the hyperparameters selected by cross-validation
   - scores.tsv: like scores.npz, but in tsv format
 """
-from sklearn.linear_model import KNeighborsClassifier
+from sklearn.svm import SVC
 
 from base.sklearn import SklearnModel
-import utils as u
 
-class kNNModel(SklearnModel):
+
+class SVCModel(SklearnModel):
     def __init__(self) -> None:
-        knn = KNeighborsClassifier(weights="distance")
-        super().__init__(knn)
-        
+        svc = SVC(gamma="scale", class_weight="balanced", probability=True)
+        super().__init__(svc)
+
     def score_features(self):
-        return self.clf.coef_
-    
+        if self.clf.get_params()["estimator__kernel"] == "linear":
+            return self.clf.best_estimator_.coef_
+        else:
+            return [1 for _ in range(self.clf.n_features_in_)]
+
     def select_features(self, scores):
-        return scores != 0
+        return [True for _ in scores]
+
 
 if __name__ == "__main__":
-    model = kNNModel()
-    model.train("${TRAIN_NPZ}", "${SELECTED_NPZ}", "${PARAMS_FILE}")
-    model.predict_proba("${TEST_NPZ}")
+    model = SVCModel()
+    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}", "${PARAMS_FILE}")
+    model.predict_proba("${TEST_NPZ}", "${SCORES_NPZ}")

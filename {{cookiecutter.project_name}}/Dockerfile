@@ -30,4 +30,3 @@ ENV CONDA_DEFAULT_ENV ${{cookiecutter.project_name}}
 RUN mkdir /{{cookiecutter.project_name}}
 WORKDIR {{cookiecutter.project_name}}
 EXPOSE 8888
-

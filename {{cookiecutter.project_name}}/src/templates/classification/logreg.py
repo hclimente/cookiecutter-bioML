@@ -17,18 +17,20 @@ from sklearn.linear_model import LogisticRegression
 
 from base.sklearn import SklearnModel
 
+
 class LogisticRegerssionModel(SklearnModel):
     def __init__(self) -> None:
         lr = LogisticRegression()
         super().__init__(lr)
-        
+
     def score_features(self):
-        return self.clf.coef_
-    
+        return self.clf.best_estimator_.coef_
+
     def select_features(self, scores):
         return [True for _ in scores]
 
+
 if __name__ == "__main__":
     model = LogisticRegerssionModel()
-    model.train("${TRAIN_NPZ}", "${SELECTED_NPZ}", "${PARAMS_FILE}")
-    model.predict_proba("${TEST_NPZ}")
+    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}", "${PARAMS_FILE}")
+    model.predict_proba("${TEST_NPZ}", "${SCORES_NPZ}")
