@@ -11,7 +11,7 @@ Output files:
 
 import numpy as np
 
-from templates.io.makeA import makeA
+from data.makeA import makeA
 
 idx = int("${PHENO.value}")
 controls = int("${WHICH_CONTROLS.value}")

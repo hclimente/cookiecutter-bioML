@@ -4,7 +4,7 @@ gbdt:
   lambdas: [0.001, 0.01, 0.1]
 logistic_regression:
   penalty: ['l1', 'none']
-  C: [0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5]
+  C: [0.01, 0.1, 0.2, 0.5]
 logistic_graph_lasso:
   lambda_1: [0.05, 0.1, 0.15, 0.2, 0.25]
   lambda_2: [0.05, 0.1, 0.15, 0.2, 0.25]

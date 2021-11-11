@@ -9,26 +9,34 @@ params.mode = "classification"
 config = file("${params.out}/config.yaml")
 mode = params.mode
 
-// TODO take the algorithms from the config file
+num_samples = [20]
+num_features = [20]
+
+simulation_models = ['categorical_1']
 feature_selection_algorithms = ['all_features']
 model_algorithms = ['logistic_regression', 'random_forest', 'svc', 'knn']
 performance_metrics = ['auc_roc', 'tpr_fpr']
 
 process simulate_data {
 
+    tag "${SIMULATION}(${NUM_SAMPLES},${NUM_FEATURES})"
+
     input:
-        val NUM_SAMPLES
-        val NUM_FEATURES
+        each SIMULATION
+        each NUM_SAMPLES
+        each NUM_FEATURES
 
     output:
-        tuple val("test"), path("simulation.npz")
+        tuple val("${SIMULATION}(${NUM_SAMPLES},${NUM_FEATURES}"), path("simulation.npz")
 
     script:
-        template "simulation/categorical_1.py"
+        template "simulation/${SIMULATION}.py"
 
 }
 
 process split_data {
+
+    tag "${PARAMS},${I})"
 
     input:
         tuple val(PARAMS), path(DATA_NPZ)
@@ -36,7 +44,7 @@ process split_data {
         val SPLITS
 
     output:
-        tuple val("${PARAMS};fold=${I}"), path("Xy_train.npz"), path("Xy_test.npz")
+        tuple val("${PARAMS},${I})"), path("Xy_train.npz"), path("Xy_test.npz")
 
     script:
         template 'data/kfold.py'
@@ -46,6 +54,7 @@ process split_data {
 process feature_selection {
 
     tag "${MODEL};${PARAMS}"
+    afterScript 'mv scores.npz scores_feature_selection.npz'
 
     input:
         each MODEL
@@ -53,7 +62,7 @@ process feature_selection {
         path PARAMS_FILE
 
     output:
-        tuple val("feature_selection=${MODEL}"), path(TRAIN_NPZ), path(TEST_NPZ), path('scores.npz')
+        tuple val("feature_selection=${MODEL};${PARAMS}"), path(TRAIN_NPZ), path(TEST_NPZ), path('scores_feature_selection.npz')
 
     script:
         template "feature_selection/${MODEL}.py"
@@ -63,6 +72,7 @@ process feature_selection {
 process model {
 
     tag "${MODEL};${PARAMS}"
+    afterScript 'mv scores.npz scores_model.npz'
 
     input:
         each MODEL
@@ -102,11 +112,11 @@ workflow models {
         model(model_algorithms, feature_selection.out, config)
         performance(performance_metrics, model.out)
     emit:
-        performance.out.collectFile(name: "${params.out}/sample.txt", skip: 1, keepHeader: true)
+        performance.out.collectFile(name: "${params.out}/performance.tsv", skip: 1, keepHeader: true)
 }
 
 workflow {
     main:
-        simulate_data(100, 20)
+        simulate_data(simulation_models, 100, 20)
         models(simulate_data.out)
 }

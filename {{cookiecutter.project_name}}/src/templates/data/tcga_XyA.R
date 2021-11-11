@@ -44,4 +44,4 @@ if ("${GXG}" != '') {
     scp\$save_npz("A.npz", A)
 }
 
-np\$savez("Xy.npz", X=X, Y=y, genes=genes)
+np\$savez("Xy.npz", X=X, Y=y, featnames=genes)
