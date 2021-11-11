@@ -40,3 +40,4 @@ if __name__ == "__main__":
     model = LogisticGraphLassoModel("${NET_NPZ}")
     model.train("${TRAIN_NPZ}", "${SCORES_NPZ}", "${PARAMS_FILE}")
     model.predict_proba("${TEST_NPZ}")
+    model.predict("${TEST_NPZ}", "${SCORES_NPZ}")

@@ -90,6 +90,14 @@ def save_proba_npz(proba: npt.ArrayLike = None, hyperparams: dict = None):
     np.savez("y_proba.npz", proba=sanitize_vector(proba), hyperparams=hyperparams)
 
 
+def save_analysis_tsv(**kwargs):
+
+    metrics_dict = locals()["kwargs"]
+
+    with open("performance.tsv", "w", newline="") as FILE:
+        pd.DataFrame(metrics_dict).to_csv(FILE, sep="\t", index=False)
+
+
 # Other functions
 ##########################
 def set_random_state(seed=0):

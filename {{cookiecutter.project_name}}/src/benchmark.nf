@@ -12,6 +12,7 @@ mode = params.mode
 // TODO take the algorithms from the config file
 feature_selection_algorithms = ['all_features']
 model_algorithms = ['logreg', 'random_forest', 'svc', 'knn']
+performance_metrics = ['auc_roc', 'tpr_fpr']
 
 process simulate_data {
 
@@ -69,25 +70,26 @@ process model {
         path PARAMS_FILE
 
     output:
-        tuple val("model=${MODEL};${PARAMS}"), path(TEST_NPZ), path('y_proba.npz')
+        tuple val("model=${MODEL};${PARAMS}"), path(TEST_NPZ), path('y_proba.npz'), path('y_pred.npz')
 
     script:
         template "${mode}/${MODEL}.py"
 
 }
 
-process analyze_predictions {
+process performance {
 
-    tag "${PARAMS}"
+    tag "${METRIC};${PARAMS}"
 
     input:
-        tuple val(PARAMS), path(TEST_NPZ), path(Y_PROBA)
+        each METRIC
+        tuple val(PARAMS), path(TEST_NPZ), path(PROBA_NPZ), path(PRED_NPZ)
 
     output:
-        path 'prediction_stats'
+        path 'performance.tsv'
 
     script:
-        template 'analysis/roc.py'
+        template "performance/${METRIC}.py"
 
 }
 
@@ -98,9 +100,9 @@ workflow models {
         split_data(data, 0..(params.splits - 1), params.splits)
         feature_selection(feature_selection_algorithms, split_data.out, config)
         model(model_algorithms, feature_selection.out, config)
-        analyze_predictions(model.out)
+        performance(performance_metrics, model.out)
     emit:
-        analyze_predictions.out.collectFile(name: "${params.out}/sample.txt", skip: 1, keepHeader: true)
+        performance.out.collectFile(name: "${params.out}/sample.txt", skip: 1, keepHeader: true)
 }
 
 workflow {

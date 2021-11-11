@@ -34,3 +34,4 @@ if __name__ == "__main__":
     model = GBDTModel()
     model.train("${TRAIN_NPZ}", "${SCORES_NPZ}", "${PARAMS_FILE}")
     model.predict_proba("${TEST_NPZ}", "${SCORES_NPZ}")
+    model.predict("${TEST_NPZ}", "${SCORES_NPZ}")

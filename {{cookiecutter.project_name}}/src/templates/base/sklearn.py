@@ -40,7 +40,7 @@ class SklearnModel:
         X_test, _, _ = u.read_data(test_npz, scores_npz)
 
         y_pred = self.clf.predict(X_test)
-        u.save_pred_npz(y_pred, self.best_hyperparams)
+        u.save_preds_npz(y_pred, self.best_hyperparams)
 
     @abstractmethod
     def score_features(self):
