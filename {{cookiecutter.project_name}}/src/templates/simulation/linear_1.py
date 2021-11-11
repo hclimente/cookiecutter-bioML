@@ -4,7 +4,7 @@ import numpy as np
 
 from base.simulator import Simulator
 
-class Linear0(Simulator):
+class Linear1(Simulator):
     
     def __init__(self, num_samples, num_features, correlated=False, binarize=False) -> None:
         super().__init__(num_samples, num_features, correlated, binarize)
@@ -20,8 +20,5 @@ class Linear0(Simulator):
 
         return y 
     
-    def noise(self, num_features):
-        return np.random.normal(loc=0.0, scale=0.1, size=num_features)
-
 if __name__ == "__main__":
-    Linear0(int("${NUM_SAMPLES}"), int("${NUM_FEATURES}"))
+    Linear1(int("${NUM_SAMPLES}"), int("${NUM_FEATURES}"), True)

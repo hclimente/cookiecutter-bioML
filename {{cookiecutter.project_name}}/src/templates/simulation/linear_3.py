@@ -4,24 +4,19 @@ import numpy as np
 
 from base.simulator import Simulator
 
-class Linear0(Simulator):
+class Linear3(Simulator):
     
     def __init__(self, num_samples, num_features, correlated=False, binarize=False) -> None:
         super().__init__(num_samples, num_features, correlated, binarize)
         
     def formula(self, X):
         
-        x1 = X[:, 0]
-        x2 = 2*X[:, 1]
-        x3 = 4*X[:, 2]
-        x4 = 8*X[:, 3]
-        
-        y = x1 + x2 + x3 + x4
+        y = X[:, 0:10].sum(axis=1)
 
         return y 
     
     def noise(self, num_features):
-        return np.random.normal(loc=0.0, scale=0.1, size=num_features)
+        return np.random.standard_t(2, size=num_features)
 
 if __name__ == "__main__":
-    Linear0(int("${NUM_SAMPLES}"), int("${NUM_FEATURES}"))
+    Linear3(int("${NUM_SAMPLES}"), int("${NUM_FEATURES}"), True)
