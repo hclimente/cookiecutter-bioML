@@ -8,4 +8,10 @@ This project has three pre-requisites:
 - [mamba](https://github.com/mamba-org/mamba)
 - [pre-commit](https://pre-commit.com/)
 
-When both are available, `make setup` will install the virtual environment in `./env/`.
+When the three of them are available, run the following commands:
+```
+# install the virtual environment in ./env/
+make setup
+# (optional) if you want to contribute, install pre-commit
+pre-commit install
+```
