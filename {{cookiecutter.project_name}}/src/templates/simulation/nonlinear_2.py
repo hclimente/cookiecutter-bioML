@@ -12,9 +12,9 @@ class NonLinear2(Simulator):
     def formula(self, X):
 
         x1 = 3 * X[:, 0]
-        x2 = 3 * X[:, 1] ** 3
-        x3 = 3 * X[:, 2] ** -1
-        x4 = 5 * (X[:, 3] > 0).astype(int)
+        x2 = 3 * X[:, 10] ** 3
+        x3 = 3 * X[:, 20] ** -1
+        x4 = 5 * (X[:, 30] > 0).astype(int)
 
         y = x1 + x2 + x3 + x4
 

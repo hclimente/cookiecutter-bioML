@@ -12,11 +12,11 @@ class Linear1(Simulator):
     def formula(self, X):
 
         x1 = X[:, 0]
-        x2 = 2 * X[:, 1]
-        x3 = 4 * X[:, 2]
-        x4 = 8 * X[:, 3]
+        x2 = X[:, 10]
+        x3 = X[:, 20]
+        x4 = X[:, 30]
 
-        y = x1 + x2 + x3 + x4
+        y = x1 + 2 * x2 + 4 * x3 + 8 * x4
 
         return y
 

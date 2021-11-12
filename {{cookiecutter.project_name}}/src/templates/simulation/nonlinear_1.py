@@ -14,9 +14,9 @@ class NonLinear1(Simulator):
     def formula(self, X):
 
         x1 = 5 * X[:, 0]
-        x2 = 2 * np.sin(np.pi * X[:, 1] / 2)
-        x3 = 2 * X[:, 2] * (X[:, 2] > 0).astype(int)
-        x4 = 2 * np.exp(5 * X[:, 3])
+        x2 = 2 * np.sin(np.pi * X[:, 10] / 2)
+        x3 = 2 * X[:, 20] * (X[:, 20] > 0).astype(int)
+        x4 = 2 * np.exp(5 * X[:, 30])
 
         y = x1 + x2 + x3 + x4
 

@@ -13,7 +13,7 @@ class Categorical3(Simulator):
 
     def formula(self, X):
 
-        y = X[:, 0:10].sum(axis=1) + 10 ** 0.5
+        y = X[:, 0:100:10].sum(axis=1) + 10 ** 0.5
 
         return y
 

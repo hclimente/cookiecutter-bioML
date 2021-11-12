@@ -13,7 +13,7 @@ class NonLinear3(Simulator):
 
     def formula(self, X):
 
-        lam = np.exp(X[:, 0:10].sum(axis=1))
+        lam = np.exp(X[:, 0:100:10].sum(axis=1))
         y = np.random.poisson(lam=lam, size=X.shape[0]).astype(float)
 
         return y
