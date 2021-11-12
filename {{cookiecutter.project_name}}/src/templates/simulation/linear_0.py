@@ -13,10 +13,13 @@ class Linear0(Simulator):
 
     def formula(self, X):
 
+        self.causal = np.array(range(0, 31, 10))
+        X = X[:, self.causal]
+
         x1 = X[:, 0]
-        x2 = X[:, 10]
-        x3 = X[:, 20]
-        x4 = X[:, 30]
+        x2 = X[:, 1]
+        x3 = X[:, 2]
+        x4 = X[:, 3]
 
         y = x1 + 2 * x2 + 4 * x3 + 8 * x4
 

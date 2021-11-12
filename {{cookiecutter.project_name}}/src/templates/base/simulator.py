@@ -2,14 +2,19 @@ from abc import abstractmethod
 
 import numpy as np
 
+import utils as u
+
 
 class Simulator:
     def __init__(self, num_samples, num_features, correlated, binarize):
         self.X = self.make_X(num_samples, num_features, correlated)
         self.y = self.formula(self.X) + self.noise(num_samples)
+        self.featnames = np.arange(num_features)
+
+        u.save_scores_npz(self.featnames, [f in self.causal for f in self.featnames])
+
         if binarize:
             self.y = self.binarize(self.y)
-        self.featnames = np.arange(num_features)
 
         np.savez("simulation.npz", X=self.X, y=self.y, featnames=self.featnames)
 

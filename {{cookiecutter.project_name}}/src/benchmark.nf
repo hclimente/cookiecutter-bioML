@@ -15,11 +15,12 @@ num_features = [20]
 simulation_models = ['categorical_1']
 feature_selection_algorithms = ['all_features']
 model_algorithms = ['logistic_regression', 'random_forest', 'svc', 'knn']
-performance_metrics = ['auc_roc', 'tpr_fpr']
+performance_metrics = ['auc_roc', 'tpr_fpr', 'features_tpr_fpr']
 
 process simulate_data {
 
     tag "${SIMULATION}(${NUM_SAMPLES},${NUM_FEATURES})"
+    afterScript 'mv scores.npz causal.npz'
 
     input:
         each SIMULATION
@@ -27,7 +28,7 @@ process simulate_data {
         each NUM_FEATURES
 
     output:
-        tuple val("${SIMULATION}(${NUM_SAMPLES},${NUM_FEATURES}"), path("simulation.npz")
+        tuple val("${SIMULATION}(${NUM_SAMPLES},${NUM_FEATURES}"), path("simulation.npz"), path('causal.npz')
 
     script:
         template "simulation/${SIMULATION}.py"
@@ -39,12 +40,12 @@ process split_data {
     tag "${PARAMS},${I})"
 
     input:
-        tuple val(PARAMS), path(DATA_NPZ)
+        tuple val(PARAMS), path(DATA_NPZ), path(CAUSAL_NPZ)
         each I
         val SPLITS
 
     output:
-        tuple val("${PARAMS},${I})"), path("Xy_train.npz"), path("Xy_test.npz")
+        tuple val("${PARAMS},${I})"), path("Xy_train.npz"), path("Xy_test.npz"), path(CAUSAL_NPZ)
 
     script:
         template 'data/kfold.py'
@@ -58,11 +59,11 @@ process feature_selection {
 
     input:
         each MODEL
-        tuple val(PARAMS), path(TRAIN_NPZ), path(TEST_NPZ)
+        tuple val(PARAMS), path(TRAIN_NPZ), path(TEST_NPZ), path(CAUSAL_NPZ)
         path PARAMS_FILE
 
     output:
-        tuple val("feature_selection=${MODEL};${PARAMS}"), path(TRAIN_NPZ), path(TEST_NPZ), path('scores_feature_selection.npz')
+        tuple val("feature_selection=${MODEL};${PARAMS}"), path(TRAIN_NPZ), path(TEST_NPZ), path(CAUSAL_NPZ), path('scores_feature_selection.npz')
 
     script:
         template "feature_selection/${MODEL}.py"
@@ -76,11 +77,11 @@ process model {
 
     input:
         each MODEL
-        tuple val(PARAMS), path(TRAIN_NPZ), path(TEST_NPZ), path(SCORES_NPZ)
+        tuple val(PARAMS), path(TRAIN_NPZ), path(TEST_NPZ), path(CAUSAL_NPZ), path(SCORES_NPZ)
         path PARAMS_FILE
 
     output:
-        tuple val("model=${MODEL};${PARAMS}"), path(TEST_NPZ), path('y_proba.npz'), path('y_pred.npz')
+        tuple val("model=${MODEL};${PARAMS}"), path(TEST_NPZ), path(CAUSAL_NPZ), path(SCORES_NPZ), path('y_proba.npz'), path('y_pred.npz')
 
     script:
         template "${mode}/${MODEL}.py"
@@ -93,7 +94,7 @@ process performance {
 
     input:
         each METRIC
-        tuple val(PARAMS), path(TEST_NPZ), path(PROBA_NPZ), path(PRED_NPZ)
+        tuple val(PARAMS), path(TEST_NPZ), path(CAUSAL_NPZ), path(SCORES_NPZ), path(PROBA_NPZ), path(PRED_NPZ)
 
     output:
         path 'performance.tsv'
@@ -117,6 +118,6 @@ workflow models {
 
 workflow {
     main:
-        simulate_data(simulation_models, 100, 20)
+        simulate_data(simulation_models, 100, 100)
         models(simulate_data.out)
 }

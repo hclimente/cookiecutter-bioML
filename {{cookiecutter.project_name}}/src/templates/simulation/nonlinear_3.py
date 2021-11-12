@@ -13,7 +13,10 @@ class NonLinear3(Simulator):
 
     def formula(self, X):
 
-        lam = np.exp(X[:, 0:100:10].sum(axis=1))
+        self.causal = np.array(range(0, 91, 10))
+        X = X[:, self.causal]
+
+        lam = np.exp(X.sum(axis=1))
         y = np.random.poisson(lam=lam, size=X.shape[0]).astype(float)
 
         return y

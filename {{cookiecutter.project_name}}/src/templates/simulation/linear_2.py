@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import numpy as np
+
 from base.simulator import Simulator
 
 
@@ -11,7 +13,10 @@ class Linear2(Simulator):
 
     def formula(self, X):
 
-        y = X[:, 0:100:10].sum(axis=1)
+        self.causal = np.array(range(0, 101, 10))
+        X = X[:, self.causal]
+
+        y = X.sum(axis=1)
 
         return y
 

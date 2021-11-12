@@ -8,5 +8,5 @@ cookiecutter https://github.com/hclimente/cookiecutter-bioML
 
 ## Credits
 
-- Much of the code was jointly developed with [PeterJackNaylor](https://github.com/PeterJackNaylor)
+- Part of the code was jointly developed with [PeterJackNaylor](https://github.com/PeterJackNaylor)
 - Latex template from https://github.com/kourgeorge/arxiv-style.

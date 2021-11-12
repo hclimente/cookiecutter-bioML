@@ -13,7 +13,10 @@ class Categorical3(Simulator):
 
     def formula(self, X):
 
-        y = X[:, 0:100:10].sum(axis=1) + 10 ** 0.5
+        self.causal = np.array(range(0, 91, 10))
+        X = X[:, self.causal]
+
+        y = X.sum(axis=1) + 10 ** 0.5
 
         return y
 
