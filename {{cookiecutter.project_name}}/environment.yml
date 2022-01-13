@@ -24,4 +24,5 @@ dependencies:
   - r-tidyverse
   - pandas
   - scikit-learn
+  - scikit-learn-intelex
   - seaborn
