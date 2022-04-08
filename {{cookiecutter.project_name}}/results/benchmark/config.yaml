@@ -1,23 +1,48 @@
-gbdt:
-  num_leaves: [20, 40, 60, 80, 100]
-  alphas: [0.001, 0.01, 0.1]
-  lambdas: [0.001, 0.01, 0.1]
-logistic_regression:
-  penalty: ['l1', 'none']
-  C: [0.01, 0.1, 0.2, 0.5]
-logistic_graph_lasso:
-  lambda_1: [0.05, 0.1, 0.15, 0.2, 0.25]
-  lambda_2: [0.05, 0.1, 0.15, 0.2, 0.25]
-random_forest:
-  n_estimators: [200, 500]
-  max_features: ["auto", "log2"]
-  max_depth: [4, 6, 8]
-  criterion: ["gini", "entropy"]
-knn:
-  n_neighbors: [3, 5, 7]
-svc:
-  C: [0.5, 1, 2]
-stg:
-  learning_rates: [1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
-  sigmas: [0.1, 0.2, 0.3, 0.5, 1.0]
-  lambdas: [5e-5, 5e-4, 5e-3, 5e-2, 5e-1]
+out: results/benchmark
+repeat: 10
+num_samples: [100, 500]
+num_features: [100, 500]
+kernel: ["linear", "gaussian"]
+penalty: ["l1"] # "none", "scad", "mcp"]
+optimizer: ["SGD"] #, "adam"]
+simulation_models: ['categorical_1', 'categorical_2', 'linear_0']
+feature_selection:
+  - name: dclasso
+    parameters:
+      alpha: [0.5]
+      measure_stat: ["DC"]
+      optimizer: ["adam"]
+      kernel: ["linear"]
+      measure_stat: ["DC", "HSIC"]
+      penalty: ["scad"]
+      n1: [0.3]
+  - name: stg
+    parameters:
+      learning_rates: [ 1e-5, 1e-4, 1e-3, 1e-2, 1e-1 ]
+      sigmas: [ 0.1, 0.2, 0.3, 0.5, 1.0 ]
+      lambdas: [ 5e-5, 5e-4, 5e-3, 5e-2, 5e-1 ]
+prediction:
+  - name: logistic_regression
+    parameters:
+      penalty: [ 'l1', 'none' ]
+      C: [ 0.01, 0.1, 0.2, 0.5 ]
+  - name: gbdt
+    parameters:
+      num_leaves: [ 20, 40, 60, 80, 100 ]
+      alphas: [ 0.001, 0.01, 0.1 ]
+      lambdas: [ 0.001, 0.01, 0.1 ]
+  - name: random_forest
+    parameters:
+      n_estimators: [ 200, 500 ]
+      max_features: [ "auto", "log2" ]
+      max_depth: [ 4, 6, 8 ]
+      criterion: [ "gini", "entropy" ]
+  - name: knn
+    parameters:
+      n_neighbors: [ 3, 5, 7 ]
+  - name: svc
+    parameters:
+      C: [ 0.5, 1, 2 ]
+performance_metrics:
+  tpr_fpr
+  features_tpr_fpr

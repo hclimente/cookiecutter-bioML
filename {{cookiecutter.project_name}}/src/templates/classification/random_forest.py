@@ -3,7 +3,7 @@
 Input variables:
   - TRAIN_NPZ: path to a .npz file containing three elements: an X matrix, a y vector,
     and a featnames vector (optional)
-  - PARAMS_JSON: path to a json file with the hyperparameters
+  - PARAMS_FILE: path to a YAML file with the hyperparameters
     - n_estimators
     - max_features
     - max_depth
@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class RandomForestModel(SklearnModel):
     def __init__(self) -> None:
         rf = RandomForestClassifier()
-        super().__init__(rf, "random_forest")
+        super().__init__(rf, "prediction", "random_forest")
 
     def score_features(self):
         return self.clf.best_estimator_.feature_importances_

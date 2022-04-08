@@ -5,7 +5,7 @@ Input variables:
     elements: an X matrix, a y vector, and a featnames vector (optional)
   - TEST_NPZ: path to a .npz file containing the test set. It must contain three
     elements: an X matrix, a y vector, and a featnames vector (optional)
-  - PARAMS_JSON: path to a json file with the hyperparameters
+  - PARAMS_FILE: path to a YAML file with the hyperparameters
     - C
 Output files:
   - y_proba.npz: predictions on the test set.
@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class SVCModel(SklearnModel):
     def __init__(self) -> None:
         svc = SVC(gamma="scale", class_weight="balanced", probability=True)
-        super().__init__(svc, "svc")
+        super().__init__(svc, "prediction", "svc")
 
     def score_features(self):
         if self.clf.get_params()["estimator__kernel"] == "linear":

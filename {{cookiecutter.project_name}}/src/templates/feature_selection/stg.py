@@ -104,7 +104,7 @@ def stg_model(X, y, learning_rate, sigma, lam, device=device):
 
 np.random.seed(0)
 
-train_data = np.load("${TRAIN}")
+train_data = np.load("${TRAIN_NPZ}")
 
 X = train_data["X"]
 y = train_data["Y"]

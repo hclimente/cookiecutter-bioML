@@ -5,7 +5,7 @@ Input variables:
     elements: an X matrix, a y vector, and a featnames vector (optional)
   - TEST_NPZ: path to a .npz file containing the test set. It must contain three
     elements: an X matrix, a y vector, and a featnames vector (optional)
-  - PARAMS_JSON: path to a json file with the hyperparameters
+  - PARAMS_FILE: path to a YAML file with the hyperparameters
     - n_nonzero_coefs
 Output files:
   - y_proba.npz: predictions on the test set.
@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class GBDTModel(SklearnModel):
     def __init__(self) -> None:
         gbdt = LGBMClassifier(objective="binary", n_estimators=1000)
-        super().__init__(gbdt, "gbdt")
+        super().__init__(gbdt, "prediction", "gbdt")
 
     def score_features(self):
         return self.clf.best_estimator_.feature_importances_

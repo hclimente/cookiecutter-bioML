@@ -5,7 +5,7 @@ Input variables:
     elements: an X matrix, a y vector, and a featnames vector (optional)
   - TEST_NPZ: path to a .npz file containing the test set. It must contain three
     elements: an X matrix, a y vector, and a featnames vector (optional)
-  - PARAMS_JSON: path to a json file with the hyperparameters
+  - PARAMS_FILE: path to a YAML file with the hyperparameters
     - n_nonzero_coefs
 Output files:
   - y_proba.npz: predictions on the test set.
@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class LogisticRegerssionModel(SklearnModel):
     def __init__(self) -> None:
         lr = LogisticRegression()
-        super().__init__(lr, "logistic_regression")
+        super().__init__(lr, "prediction", "logistic_regression")
 
     def score_features(self):
         return self.clf.best_estimator_.coef_

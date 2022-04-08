@@ -6,16 +6,17 @@ import utils as u
 
 
 class SklearnModel:
-    def __init__(self, model, name):
+    def __init__(self, model, model_type, name):
         u.set_random_state()
 
         self.model = model
+        self.type = model_type
         self.name = name
 
     def train(self, train_npz, scores_npz, params_file):
 
         X, y, featnames = u.read_data(train_npz, scores_npz)
-        param_grid = u.read_parameters(params_file, self.name)
+        param_grid = u.read_parameters(params_file, self.type, self.name)
 
         self.clf = GridSearchCV(self.model, param_grid, scoring="roc_auc")
         self.clf.fit(X, y)

@@ -11,6 +11,7 @@ dependencies:
   - dvc-gdrive
   - ipython
   - jupyterlab
+  - ipywidgets
   - libblas=*=*_mkl
   - nextflow
   - pip

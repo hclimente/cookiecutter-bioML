@@ -6,7 +6,7 @@ Input variables:
   - TEST_NPZ: path to a .npz file containing the test set. It must contain three
     elements: an X matrix, a y vector, and a featnames vector (optional)
   - NET_NPZ: path to a .npz file with the adjacency matrix
-  - PARAMS_JSON: path to a json file with the hyperparameters
+  - PARAMS_FILE: path to a YAML file with the hyperparameters
     - n_nonzero_coefs
 Output files:
   - y_proba.npz: predictions on the test set.
@@ -24,7 +24,7 @@ class LogisticGraphLassoModel(SklearnModel):
     def __init__(self, adjacency_npz) -> None:
         A = u.read_adjacency(adjacency_npz)
         lgl = LogisticGraphLasso(A, 0, 0)
-        super().__init__(lgl, "logistic_graph_lasso")
+        super().__init__(lgl, "prediction", "logistic_graph_lasso")
 
     def score_features(self):
         Wp = self.clf.best_estimator_.get_W("p").sum(axis=1)

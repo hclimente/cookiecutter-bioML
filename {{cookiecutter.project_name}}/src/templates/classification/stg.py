@@ -49,7 +49,7 @@ def stg_model(X, y, learning_rate, sigma, lam, device=device):
 
 np.random.seed(0)
 
-train_data = np.load("${TRAIN}", allow_pickle=True)
+train_data = np.load("${TRAIN_NPZ}", allow_pickle=True)
 
 X_train = train_data["X"]
 y_train = train_data["Y"]
@@ -67,7 +67,7 @@ if torch.cuda.is_available():
     # gpu is used
     model._model.cpu()
 # test
-test_data = np.load("${TEST}")
+test_data = np.load("${TEST_NPZ}")
 
 X_test = test_data["X"]
 print("getting the probabilities")
