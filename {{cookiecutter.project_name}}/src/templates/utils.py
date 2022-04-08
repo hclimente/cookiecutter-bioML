@@ -36,13 +36,15 @@ def read_adjacency(A_npz: str):
     return load_npz(A_npz)
 
 
-def read_parameters(params_yaml: str, clf_name: str) -> dict:
+def read_parameters(params_yaml: str, algo_type: str, algo_name: str) -> dict:
 
-    try:
-        f = open(params_yaml)
-        return yaml.load(f, Loader=yaml.Loader)[clf_name]
-    except FileNotFoundError:
-        return {}
+    f = open(params_yaml)
+
+    for x in yaml.load(f, Loader=yaml.Loader)[algo_type]:
+        if x["name"] == algo_name:
+            return x["parameters"] if x["parameters"] is not None else {}
+
+    return {}
 
 
 # Output functions
@@ -74,7 +76,7 @@ def save_scores_tsv(
 
     with open("scores.tsv", "a") as FILE:
         for key, value in hyperparams.items():
-            FILE.write("# {}: {}\\n".format(key, value))
+            FILE.write(f"# {key}: {value}\n")
         pd.DataFrame(features_dict).to_csv(FILE, sep="\t", index=False)
 
 
@@ -101,7 +103,7 @@ def set_random_state(seed=0):
     random.seed(seed)
 
 
-def custom_error(error: int = 77, file: str = None, content=None):
+def custom_error(error: int = 77, file: str = 'error.txt', content=None):
     traceback.print_exc()
     np.save(file, content)
     sys.exit(error)

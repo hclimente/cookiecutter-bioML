@@ -1,10 +1,11 @@
 nextflow.enable.dsl = 2
+config = file("${params.out}/config.yaml")
 
 // Parameters
 /////////////////////////////////////////////////////////
 params.out = '.'
 params.splits = 5
-params.mode = "classification"
+params.mode = "regression"
 
 mode = params.mode
 
@@ -65,6 +66,7 @@ process prediction {
 
     tag "${MODEL};${PARAMS}"
     afterScript 'mv scores.npz scores_model.npz'
+    errorStrategy { task.exitStatus == 77 ? 'ignore' : 'terminate' }
 
     input:
         each MODEL

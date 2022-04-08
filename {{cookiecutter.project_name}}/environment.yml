@@ -17,6 +17,7 @@ dependencies:
   - pip
   - pytest
   - python=3
+  - pyyaml
   - r-irkernel
   # usually good to have
   - jax

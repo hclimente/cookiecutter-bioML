@@ -20,7 +20,7 @@ from base.sklearn import SklearnModel
 
 class RandomForestModel(SklearnModel):
     def __init__(self) -> None:
-        rf = RandomForestClassifier()
+        rf = RandomForestClassifier
         super().__init__(rf, "prediction", "random_forest")
 
     def score_features(self):

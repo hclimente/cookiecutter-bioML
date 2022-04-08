@@ -20,7 +20,7 @@ from base.sklearn import SklearnModel
 
 class LogisticRegerssionModel(SklearnModel):
     def __init__(self) -> None:
-        lr = LogisticRegression()
+        lr = LogisticRegression
         super().__init__(lr, "prediction", "logistic_regression")
 
     def score_features(self):
