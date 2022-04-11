@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class LarsModel(SklearnModel):
     def __init__(self) -> None:
         lars = Lars
-        super().__init__(lars, "prediction", "lars")
+        super().__init__(lars, "prediction", "lars", "${MODEL_PARAMS}")
 
     def score_features(self):
         return self.clf.best_estimator_.coef_
@@ -32,5 +32,5 @@ class LarsModel(SklearnModel):
 
 if __name__ == "__main__":
     model = LarsModel()
-    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}", "${PARAMS_FILE}")
+    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}")
     model.predict("${TEST_NPZ}", "${SCORES_NPZ}")

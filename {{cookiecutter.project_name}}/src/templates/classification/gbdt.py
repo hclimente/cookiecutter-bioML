@@ -20,9 +20,9 @@ from base.sklearn import SklearnModel
 
 class GBDTModel(SklearnModel):
     def __init__(self) -> None:
-        default_params = {"objective": "binary", "n_estimators": 1000}
         gbdt = LGBMClassifier
-        super().__init__(gbdt, "prediction", "gbdt", default_params)
+        super().__init__(gbdt, "prediction", "gbdt", "${MODEL_PARAMS}")
+        self.fixed_params.update({"objective": "binary", "n_estimators": 1000})
 
     def score_features(self):
         return self.clf.best_estimator_.feature_importances_
@@ -33,6 +33,6 @@ class GBDTModel(SklearnModel):
 
 if __name__ == "__main__":
     model = GBDTModel()
-    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}", "${PARAMS_FILE}")
+    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}")
     model.predict_proba("${TEST_NPZ}", "${SCORES_NPZ}")
     model.predict("${TEST_NPZ}", "${SCORES_NPZ}")

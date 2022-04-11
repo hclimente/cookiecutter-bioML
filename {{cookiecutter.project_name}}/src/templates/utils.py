@@ -2,6 +2,7 @@ import random
 import sys
 import traceback
 
+import json
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -36,15 +37,44 @@ def read_adjacency(A_npz: str):
     return load_npz(A_npz)
 
 
-def read_parameters(params_yaml: str, algo_type: str, algo_name: str) -> dict:
+def read_yaml_parameters(params_yaml: str, algo_type: str, algo_name: str) -> dict:
 
     f = open(params_yaml)
+    params = {"cv_parameters": {}, "fixed_parameters": {}}
 
     for x in yaml.load(f, Loader=yaml.Loader)[algo_type]:
         if x["name"] == algo_name:
-            return x["parameters"] if x["parameters"] is not None else {}
+            params["cv_parameters"] = x.get("cv_parameters", {})
+            params["fixed_parameters"] = x.get("fixed_parameters", {})
 
-    return {}
+    return sanitize_parameters(params)
+
+
+def read_json_parameters(params: str):
+
+    params = json.loads(params)
+    return sanitize_parameters(params)
+
+
+def sanitize_parameters(params: dict):
+
+    to_delete = set()
+    for k, v in params["cv_parameters"].items():
+        if isinstance(v, list) and len(v) == 1:
+            params["fixed_parameters"][k] = v[0]
+            to_delete.add(k)
+        else:
+            params["fixed_parameters"][k] = v
+            to_delete.add(k)
+
+    params["cv_parameters"] = {
+        k: v for k, v in params["cv_parameters"].items() if k not in to_delete
+    }
+
+    if set(params["fixed_parameters"].items()) & set(params["cv_parameters"].items()):
+        raise Exception("Repeated parameters in fixed_parameters and cv_parameters.")
+
+    return params
 
 
 # Output functions
@@ -103,7 +133,7 @@ def set_random_state(seed=0):
     random.seed(seed)
 
 
-def custom_error(error: int = 77, file: str = 'error.txt', content=None):
+def custom_error(error: int = 77, file: str = "error.txt", content=None):
     traceback.print_exc()
     np.save(file, content)
     sys.exit(error)

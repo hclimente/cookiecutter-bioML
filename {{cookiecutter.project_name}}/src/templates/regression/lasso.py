@@ -22,7 +22,7 @@ import utils as u
 class LassoModel(SklearnModel):
     def __init__(self) -> None:
         lasso = Lasso
-        super().__init__(lasso, "prediction", "lasso")
+        super().__init__(lasso, "prediction", "lasso", "${MODEL_PARAMS}")
 
     def score_features(self):
         return self.clf.best_estimator_.coef_
@@ -33,6 +33,6 @@ class LassoModel(SklearnModel):
 
 if __name__ == "__main__":
     model = LassoModel()
-    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}", "${PARAMS_FILE}")
+    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}")
     model.predict("${TEST_NPZ}", "${SCORES_NPZ}")
     u.save_proba_npz([], model.best_hyperparams)

@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class RandomForestModel(SklearnModel):
     def __init__(self) -> None:
         rf = RandomForestClassifier
-        super().__init__(rf, "prediction", "random_forest")
+        super().__init__(rf, "prediction", "random_forest", "${MODEL_PARAMS}")
 
     def score_features(self):
         return self.clf.best_estimator_.feature_importances_
@@ -32,6 +32,6 @@ class RandomForestModel(SklearnModel):
 
 if __name__ == "__main__":
     model = RandomForestModel()
-    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}", "${PARAMS_FILE}")
+    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}")
     model.predict_proba("${TEST_NPZ}", "${SCORES_NPZ}")
     model.predict("${TEST_NPZ}", "${SCORES_NPZ}")

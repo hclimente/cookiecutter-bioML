@@ -6,33 +6,32 @@ import utils as u
 
 
 class SklearnModel:
-    def __init__(self, model, model_type, name, default_params={}):
+    def __init__(self, model, model_type, name, params):
         u.set_random_state()
 
         self.model = model
         self.type = model_type
         self.name = name
-        self.default_params = default_params
 
-    def train(self, train_npz, scores_npz, params_file):
+        params = u.read_json_parameters(params)
+        self.fixed_params = params["fixed_parameters"]
+        self.cv_params = params["cv_parameters"]
+
+    def train(self, train_npz, scores_npz):
 
         X, y, featnames = u.read_data(train_npz, scores_npz)
-        param_grid = u.read_parameters(params_file, self.type, self.name)
-        param_grid.update(self.default_params)
 
-        is_grid = any([len(v) > 1 for _, v in param_grid.items()])
-
-        if is_grid:
-            self.clf = GridSearchCV(self.model(), param_grid, scoring="roc_auc")
+        model = self.model(**self.fixed_params)
+        if self.cv_params:
+            self.clf = GridSearchCV(model, self.cv_params, scoring="roc_auc")
             self.clf.fit(X, y)
-            self.best_hyperparams = {k: v for k, v in param_grid.items()}
-
+            self.best_hyperparams = {
+                k: self.clf.best_params_[k] for k in self.cv_params.keys()
+            }
         else:
-            self.best_hyperparams = {k: v[0] for k, v in param_grid.items()}
-            self.clf = self.model(**self.best_hyperparams)
-            self.clf.best_estimator_ = self.clf
-
+            self.clf = model
             self.clf.fit(X, y)
+            self.best_hyperparams = {}
 
         scores = self.score_features()
         scores = u.sanitize_vector(scores)

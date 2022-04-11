@@ -21,7 +21,7 @@ from base.sklearn import SklearnModel
 class LogisticRegerssionModel(SklearnModel):
     def __init__(self) -> None:
         lr = LogisticRegression
-        super().__init__(lr, "prediction", "logistic_regression")
+        super().__init__(lr, "prediction", "logistic_regression", "${MODEL_PARAMS}")
 
     def score_features(self):
         return self.clf.best_estimator_.coef_
@@ -32,6 +32,6 @@ class LogisticRegerssionModel(SklearnModel):
 
 if __name__ == "__main__":
     model = LogisticRegerssionModel()
-    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}", "${PARAMS_FILE}")
+    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}")
     model.predict_proba("${TEST_NPZ}", "${SCORES_NPZ}")
     model.predict("${TEST_NPZ}", "${SCORES_NPZ}")

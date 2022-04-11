@@ -20,8 +20,9 @@ from base.sklearn import SklearnModel
 
 class SVCModel(SklearnModel):
     def __init__(self) -> None:
-        svc = SVC(gamma="scale", class_weight="balanced", probability=True)
-        super().__init__(svc, "prediction", "svc")
+        svc = SVC
+        super().__init__(svc, "prediction", "svc", "${MODEL_PARAMS}")
+        self.fixed_params.update({"gamma": "scale", "class_weight": "balanced", "probability": True})
 
     def score_features(self):
         if self.clf.get_params()["estimator__kernel"] == "linear":
@@ -35,6 +36,6 @@ class SVCModel(SklearnModel):
 
 if __name__ == "__main__":
     model = SVCModel()
-    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}", "${PARAMS_FILE}")
+    model.train("${TRAIN_NPZ}", "${SCORES_NPZ}")
     model.predict_proba("${TEST_NPZ}", "${SCORES_NPZ}")
     model.predict("${TEST_NPZ}", "${SCORES_NPZ}")
