@@ -11,9 +11,13 @@ SHELL=bash
 setup: $(CONDA_ENV)
 	$(CONDA_ACTIVATE) && R -e "IRkernel::installspec()"
 	pre-commit install
+	pip install --upgrade --force-reinstall "jax[cpu]"
 
 test:
 	$(CONDA_ACTIVATE); pytest test
+
+pip:
+	$(CONDA_ACTIVATE); python setup.py sdist; twine upload dist/*
 
 docker_build: Dockerfile
 	docker build -t {{cookiecutter.project_name}} .

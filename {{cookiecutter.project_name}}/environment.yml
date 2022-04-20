@@ -28,3 +28,4 @@ dependencies:
   - scikit-learn
   - scikit-learn-intelex
   - seaborn
+  - twine

@@ -1,3 +1,7 @@
 {
-    "project_name": "default_name"
+    "project_name": "default_name",
+    "project_short_description": "",
+    "full_name": "Héctor Climente-González",
+    "email": "hector.climente@riken.jp",
+    "github_username": "hclimente"
 }
